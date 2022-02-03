@@ -20,7 +20,7 @@ const users = [
 
 const posts = [
   {
-    id: '256',
+    id: '156',
     title: "const's make it rain!",
     body: "I'm singing in the rain!",
     published: true,

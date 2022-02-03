@@ -1,8 +1,9 @@
+import { PubSub } from 'graphql-yoga';
 import uuidv4 from 'uuid/v4';
 
 const Mutation = {
   createUser(parent, { data }, { db }, info) {
-    const emailTaken = db.users.some((user) => user.email === data.email);
+    const emailTaken = db.users.some(user => user.email === data.email);
 
     if (emailTaken) {
       throw new Error('Email taken');
@@ -18,7 +19,7 @@ const Mutation = {
     return user;
   },
   deleteUser(parent, { id }, { db }, info) {
-    const userIndex = db.users.findIndex((user) => user.id === id);
+    const userIndex = db.users.findIndex(user => user.id === id);
 
     if (userIndex === -1) {
       throw new Error('User not found');
@@ -26,29 +27,29 @@ const Mutation = {
 
     const deletedUsers = db.users.splice(userIndex, 1);
 
-    db.posts = db.posts.filter((post) => {
+    db.posts = db.posts.filter(post => {
       const match = post.author === id;
 
       if (match) {
-        db.comments = db.comments.filter((comment) => comment.post !== post.id);
+        db.comments = db.comments.filter(comment => comment.post !== post.id);
       }
 
       return !match;
     });
-    db.comments = db.comments.filter((comment) => comment.author !== args.id);
+    db.comments = db.comments.filter(comment => comment.author !== args.id);
 
     return deletedUsers[0];
   },
   updateUser(parent, args, { db }, info) {
     const { id, data } = args;
-    const user = db.users.find((user) => user.id === id);
+    const user = db.users.find(user => user.id === id);
 
     if (!user) {
       throw new Error('User not found');
     }
 
     if (typeof data.email === 'string') {
-      const emailTaken = db.users.some((user) => user.email === data.email);
+      const emailTaken = db.users.some(user => user.email === data.email);
 
       if (emailTaken) {
         throw new Error('Email taken');
@@ -68,7 +69,7 @@ const Mutation = {
     return user;
   },
   createPost(parent, { data }, { db }, info) {
-    const userExists = db.users.some((user) => user.id === data.author);
+    const userExists = db.users.some(user => user.id === data.author);
 
     if (!userExists) {
       throw new Error('User not found');
@@ -84,7 +85,7 @@ const Mutation = {
     return post;
   },
   deletePost(parent, { id }, { db }, info) {
-    const postIndex = db.posts.findIndex((post) => post.id === id);
+    const postIndex = db.posts.findIndex(post => post.id === id);
 
     if (postIndex === -1) {
       throw new Error('Post not found');
@@ -92,13 +93,13 @@ const Mutation = {
 
     const deletedPosts = db.posts.splice(postIndex, 1);
 
-    db.comments = db.comments.filter((comment) => comment.post !== id);
+    db.comments = db.comments.filter(comment => comment.post !== id);
 
     return deletedPosts[0];
   },
   updatePost(parent, args, { db }, info) {
     const { id, data } = args;
-    const post = db.posts.find((post) => post.id === id);
+    const post = db.posts.find(post => post.id === id);
 
     if (!post) {
       throw new Error('Post not found');
@@ -118,10 +119,10 @@ const Mutation = {
 
     return post;
   },
-  createComment(parent, { data }, { db }, info) {
-    const userExists = db.users.some((user) => user.id === data.author);
+  createComment(parent, { data }, { db, pubsub }, info) {
+    const userExists = db.users.some(user => user.id === data.author);
     const postExists = db.posts.some(
-      (post) => post.id === data.post && post.published
+      post => post.id === data.post && post.published
     );
 
     if (!userExists || !postExists) {
@@ -133,13 +134,14 @@ const Mutation = {
       ...data,
     };
 
+    pubsub.publish(`comment ${data.post}`, { comment: comment });
     db.comments.push(comment);
 
     return comment;
   },
   deleteComment(parent, args, { db }, info) {
     const commentIndex = db.comments.findIndex(
-      (comment) => comment.id === args.id
+      comment => comment.id === args.id
     );
 
     if (commentIndex === -1) {
@@ -152,7 +154,7 @@ const Mutation = {
   },
   updateComment(parent, args, { db }, info) {
     const { id, data } = args;
-    const comment = db.comments.find((comment) => comment.id === id);
+    const comment = db.comments.find(comment => comment.id === id);
 
     if (!comment) {
       throw new Error('Comment not found');
