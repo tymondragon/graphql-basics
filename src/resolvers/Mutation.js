@@ -81,26 +81,39 @@ const Mutation = {
     };
 
     if (data.published) {
-      pubsub.publish('post', { post: post });
+      pubsub.publish('post', {
+        post: {
+          mutation: 'CREATED',
+          data: post,
+        },
+      });
     }
     db.posts.push(post);
 
     return post;
   },
-  deletePost(parent, { id }, { db }, info) {
+  deletePost(parent, { id }, { db, pubsub }, info) {
     const postIndex = db.posts.findIndex(post => post.id === id);
-
     if (postIndex === -1) {
       throw new Error('Post not found');
     }
 
-    const deletedPosts = db.posts.splice(postIndex, 1);
+    const [deletedPost] = db.posts.splice(postIndex, 1);
+
+    if (deletedPost.published) {
+      pubsub.publish('post', {
+        post: {
+          mutation: 'DELETED',
+          data: deletedPost,
+        },
+      });
+    }
 
     db.comments = db.comments.filter(comment => comment.post !== id);
 
-    return deletedPosts[0];
+    return deletedPost;
   },
-  updatePost(parent, args, { db }, info) {
+  updatePost(parent, args, { db, pubsub }, info) {
     const { id, data } = args;
     const post = db.posts.find(post => post.id === id);
 
@@ -118,6 +131,15 @@ const Mutation = {
 
     if (typeof data.published === 'boolean') {
       post.published = data.published;
+    }
+
+    if (post.published) {
+      pubsub.publish('post', {
+        post: {
+          mutation: 'UPDATED',
+          data: post,
+        },
+      });
     }
 
     return post;
