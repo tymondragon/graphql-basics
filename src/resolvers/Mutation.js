@@ -81,8 +81,8 @@ const Mutation = {
     };
 
     if (data.published) {
-      pubsub.publish('post', { post: post })
-    };
+      pubsub.publish('post', { post: post });
+    }
     db.posts.push(post);
 
     return post;
@@ -136,8 +136,13 @@ const Mutation = {
       id: uuidv4(),
       ...data,
     };
-
-    pubsub.publish(`comment ${data.post}`, { comment: comment });
+    console.log(comment);
+    pubsub.publish(`comment ${data.post}`, {
+      comment: {
+        mutation: 'CREATED',
+        data: comment,
+      },
+    });
     db.comments.push(comment);
 
     return comment;

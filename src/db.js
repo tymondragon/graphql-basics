@@ -30,7 +30,7 @@ const posts = [
     id: '157',
     title: 'E plurbus unum',
     body: 'moxyu poxy',
-    published: false,
+    published: true,
     author: '1',
   },
   {
@@ -44,7 +44,7 @@ const posts = [
     id: '159',
     title: 'Do androids dream electric dreams?',
     body: 'NO!',
-    published: false,
+    published: true,
     author: '3',
   },
   {
@@ -61,7 +61,7 @@ const comments = [
     id: '10',
     text: "Well, that's lame!",
     author: '1',
-    post: '159',
+    post: '156',
   },
   {
     id: '11',
