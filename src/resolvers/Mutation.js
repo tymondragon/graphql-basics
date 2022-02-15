@@ -115,49 +115,49 @@ const Mutation = {
   },
   updatePost(parent, args, { db, pubsub }, info) {
     const { id, data } = args;
-    const post = db.posts.find(post => post.id === id);
-    const originalPost = { ...post };
+    const postToUpdate = db.posts.find(post => post.id === id);
+    const originalPost = { ...postToUpdate };
 
-    if (!post) {
+    if (!postToUpdate) {
       throw new Error('Post not found');
     }
 
     if (typeof data.title === 'string') {
-      post.title = data.title;
+      postToUpdate.title = data.title;
     }
 
     if (typeof data.body === 'string') {
-      post.body = data.body;
+      postToUpdate.body = data.body;
     }
 
     if (typeof data.published === 'boolean') {
-      post.published = data.published;
+      postToUpdate.published = data.published;
 
-      if (originalPost.published && !post.published) {
+      if (originalPost.published && !postToUpdate.published) {
         pubsub.publish('post', {
           post: {
             mutation: 'DELETED',
-            data: post,
+            data: postToUpdate,
           },
         });
-      } else if (!originalPost.published && post.published) {
+      } else if (!originalPost.published && postToUpdate.published) {
         pubsub.publish('post', {
           post: {
             mutation: 'CREATED',
-            data: post,
+            data: postToUpdate,
           },
         });
       }
-    } else if (post.published) {
+    } else if (postToUpdate.published) {
       pubsub.publish('post', {
         post: {
           mutation: 'UPDATED',
-          data: post,
+          data: postToUpdate,
         },
       });
     }
 
-    return post;
+    return postToUpdate;
   },
   createComment(parent, { data }, { db, pubsub }, info) {
     const userExists = db.users.some(user => user.id === data.author);
